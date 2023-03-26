@@ -1,0 +1,28 @@
+{
+    "_comment": "https://xrpl.org/xrp-testnet-faucet.html",
+    "node": {
+        "testnet": [
+            "wss://s.altnet.rippletest.net:51233",
+            "wss://testnet.xrpl-labs.com/"
+        ],
+        "devnet": [
+            "wss://s.devnet.rippletest.net:51233/"
+        ],
+        "hooks": [
+            "wss://hooks-testnet-v2.xrpl-labs.com"
+        ]
+    },
+    "config": {
+        "account_seed": "sEdTpveCN3MJ8jpX92T7AsHm8HFtkzw",
+        "quorum": {
+            "signer_quorom": 0.8,
+            "voting_quorum": 0.8
+        },
+        "NPL_round_timeout": {
+            "signerlist_setup": 6000,
+            "signing": 5000,
+            "key_checkup": 8000,
+            "key_checkup_validation": 8000
+        }
+    }
+}

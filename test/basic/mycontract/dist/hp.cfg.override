@@ -1,0 +1,21 @@
+{
+    "contract": {
+        "bin_path": "/usr/bin/node",
+        "bin_args": "index.js",
+        "consensus": {
+            "mode": "private",
+            "roundtime": 5000,
+            "threshold": 80
+        },
+        "npl": {
+            "mode": "private"
+        },
+        "mesh": {
+            "msg_forwarding": true,
+            "peer_discovery": {
+                "enabled": true,
+                "interval": 10000
+            }
+        }
+    }
+}

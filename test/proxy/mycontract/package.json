@@ -1,0 +1,13 @@
+{
+    "name": "mycontract",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "npx ncc build src/mycontract.js -o dist",
+        "start": "npm run build && hpdevkit deploy dist"
+    },
+    "dependencies": {
+        "@vercel/ncc": "0.34.0",
+        "hotpocket-nodejs-contract": "0.5.7",
+        "xrpl": "^2.7.0"
+    }
+}
