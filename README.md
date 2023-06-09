@@ -2,7 +2,7 @@
 
 A NodeJS library for HotPocket clusters to manage their XRPL account in a decentralized manner. The `DKM` library facilitates the management of a dApp's XRPL multi-sig account.
 
-`DKM` is available for installation on npm:
+`DKM` is available for installation on [npm](https://www.npmjs.com/package/decentralized-key-management):
 ```
 npm install decentralized-key-management
 ```
