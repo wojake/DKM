@@ -8,3 +8,8 @@ node_modules
 
 # eslint
 .eslintrc.json
+
+package-lock.json
+
+.vscode
+.idea

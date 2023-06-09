@@ -1,0 +1,1 @@
+{"_comment":"https://xrpl.org/xrp-testnet-faucet.html","node":{"testnet":["wss://testnet.xrpl-labs.com/"]},"account":{"seed":"sEdVqae7eniTA7J776cQ7qoz14tjdAi","signerlist_quorum":0.8},"signer":{"scheme":["ed25519","secp256k1"],"default_fee_per_signer":15},"NPL_round_timeout":{"signerlist_setup":6000,"signing":5000,"signer_status_checkup":8000}}

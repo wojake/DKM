@@ -5,7 +5,7 @@
         "consensus": {
             "mode": "private",
             "roundtime": 5000,
-            "threshold": 80
+            "threshold": 75
         },
         "npl": {
             "mode": "private"

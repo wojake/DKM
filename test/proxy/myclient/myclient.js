@@ -40,7 +40,7 @@ async function clientApp() {
             TransactionType: TransactionType,
             Destination: Destination,
             Amount: Amount
-        }
+        };
 
         var client = await Connect();
         client.submitContractInput(JSON.stringify(request));
