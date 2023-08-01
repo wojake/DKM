@@ -77,7 +77,8 @@ There are 4 core config parameters, which are:
 
 ## NPL_round_timeout
 
-> This section contains attributes o
+> This section contains attributes for NPL timeout control
+
 |        Field          |                                                        Description                                                         |
 | :-------------------: | :------------------------------------------------------------------------------------------------------------------------: |
 |    signerlist_setup   |                            The timeout for the NPL round during the HP dApp's XRPL account setup                           |
