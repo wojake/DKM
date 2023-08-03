@@ -4,50 +4,68 @@
 
 **Decentralized Key Management** or DKM is a NodeJS library meant to be used atop of HotPocket smart contracts to manage their XRPL account and interact with an XRPL-powered network in a decentralized manner.
 
-`DKM` allows HotPocket dApps to submit multi-sig transactions over to the XRP Ledger in an effiecient manner. We'll show you how it works under the hood and how you should use them in your dApp!
+`DKM` allows HotPocket dApps to submit multi-sig transactions over to the XRP Ledger in an efficient manner. We'll show you how it works under the hood and how you should use them in your dApp!
 
 Go through this code sample and an explanation of each function is laid out below!
 
 ```js
 const HotPocket = require("hotpocket-nodejs-contract");
-const DKM = require("decentralized-key-management");
+const DecentralizedKeyManagement = require("decentralized-key-management");
 const xrpl = require("xrpl");
 
 const mycontract = async (ctx) => {
-    // Get node's URL
-    const ClientURL = DKM.getClient(network="testnet");
-    
-    console.log(`Connected XRPL node: ${ClientURL}`);
-    
-    // Connect to node
-    var client = new xrpl.Client(ClientURL);
+    const ClientURL = DecentralizedKeyManagement.getNetwork("hooks");
+
+    var client = new xrpl.Client(ClientURL.wss);
+    var networkID = ClientURL.network_id;
+
     await client.connect();
 
+    console.log(`Connected XRPL node: ${ClientURL.wss}`);
 
-    // Initialize DKM
-    const DKMObject = new DKM.DecentralizedKeyManagement(ctx, client);
-    await DKMObject.init();
+    // --- TEST 1: INIT DKM ---
+    console.log("\n - TEST 1: Initializing DKM. UTILIZES: constructor(), init()");
 
-    // Check up on cluster's state (signers)
-    const cluster_state = await DKMObject.checkupClusterSigners();
+    const DKM = new DecentralizedKeyManagement.Manager(ctx, client, networkID);
 
-    console.log(cluster_state);
+    try{
+        var initResult = await DKM.init();
+    } catch (err) {
+        console.log(err);
+    }
+   
+    // --- TEST 2: PAYMENT TRANSACTION ---
+    console.log("\n - TEST 2: Sending Payment Transaction. UTILIZES: packageTxAPI(), autofillTx(), signTx(), submitTx()");
 
-    // Construct an unfilled transaction with a MEMO field attached
-    const tx = await DKMObject.packageTxAPI({
+    const tx = await DKM.packageTxAPI({
         destination: "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
         amount: ctx.lclSeqNo.toString(),
-        MEMO: {
-            memo_data: `This transaction was signed using DKM on a HotPocket cluster in Ledger ${ctx.lclSeqNo} !`,
-            memo_type: "LEDGER",
-            memo_format: "text/csv"
+        memo: {
+            data: "You seem smart to lurk here, here's some general alpha: Hooks & Evernode will change the entire game. Do R&D and network well.",
+            type: "21337",
+            format: "text/csv"
         }
     });
 
-    // Autofill, multi-sign and relay transaction to rippled node
-    const tx_filled = await DKMObject.autofillTx({tx: tx, multisig: true});
-    const tx_sig = await DKMObject.signTx({tx: tx_filled});
-    const tx_result = await DKMObject.submitTx({tx: tx_sig});
+    const tx_filled = await DKM.autofillTx({
+        tx: tx,
+        multisig: true
+    });
+    const tx_sig = await DKM.signTx(tx_filled);
+    try {
+        var tx_result = await DKM.submitTx(tx_sig);
+    } catch (err) {
+        console.log(err);
+    }
+
+    // --- TEST 3: CLUSTER MANAGEMENT ---
+    console.log("\n - TEST 3: Managing the cluster. UTILIZES: checkupClusterSigners(), addSignerKey(), removeSignerKey()");
+
+    const cluster_state = await DKM.checkupClusterSigners();
+
+    console.log(`      Online peers: ${cluster_state.OnlineSigners.length}`);
+    console.log(`     Offline peers: ${cluster_state.OfflineSigners.length}`);
+    console.log(` NPL Time duration: ${cluster_state.TimeTaken}ms / ${cluster_state.Timeout}ms`);
 
     await client.disconnect();
 };
@@ -56,31 +74,34 @@ const hpc = new HotPocket.Contract();
 hpc.init(mycontract);
 ```
 
-### DKM.getClient()
+### DKM.getNetwork()
 
 ```js
-// Get node's URL
-const ClientURL = DKM.getClient(network="testnet");
-    
-console.log(`Connected XRPL node: ${ClientURL}`);
-    
-// Connect to node
-var client = new xrpl.Client(ClientURL);
-await client.connect();
-```
+// Get XRPL network data from DKM's config file
+const ClientURL = DecentralizedKeyManagement.getNetwork("hooks");
 
-`DKM` provides a function to return a random node's URL from `DKM`'s config file:
+var client = new xrpl.Client(ClientURL.wss);
+var networkID = ClientURL.network_id;
+
+await client.connect();
+
+console.log(`Connected XRPL node: ${ClientURL.wss}`);
+```
 
 ```json
-    "node": {
-        "testnet": [
-            "wss://s.altnet.rippletest.net:51233",
-            "wss://testnet.xrpl-labs.com/"
-        ]
+"network": {
+    "hooks": {
+        "wss": "wss://hooks-testnet-v3.xrpl-labs.com",
+        "network_id": 21338
     },
+    "testnet": {
+        "wss": "wss://testnet.xrpl-labs.com/",
+        "network_id": 1
+    }
+}
 ```
 
-`DKM.getClient(network="testnet")` would return a random object (node's URL) from the array. This is to ensure that the entire HP cluster does not rely on one singular node and uses a range of rippled node to interact with the XRPL. This increases reliability and safety.
+`DKM.getNetwork("hooks")` would return an object which contains a node's URL and the network's ID.
 
 ### DKM.init()
 
@@ -88,12 +109,11 @@ DKM uses an OOP-based code design. So with this in mind, variables and functions
 
 ```js
 // Initialize DKM
-const DKMObject = new DKM.DecentralizedKeyManagement(ctx, client);
-await DKMObject.init();
+const DKM = new DecentralizedKeyManagement.Manager("HP contract contex", "XRPL client node URL", "XRPL network ID");
+var initResult = await DKM.init();
 ```
 
-`DKMObject.init()` initializes fundamental variables and functions like `#generateSignerCredentials(), #setupDAppAccount(), getTransactions(), getSignerList()` to sync with the XRPL in terms of the dApp's signer list, new transactions affecting/interacting with the account, and setting up the dApp's account in `Ledger #1`.
-
+`DKM.init()` initializes fundamental variables and functions like `#generateSignerCredentials(), #setupDAppAccount(), getTransactions(), getSignerList()` to sync with the XRPL in terms of the dApp's signer list, new transactions affecting/interacting with the account, and setting up the dApp's account in `Ledger #1`.
 
 ### DKM.checkupClusterSigners()
 
@@ -107,62 +127,56 @@ const cluster_state = await DKMObject.checkupClusterSigners();
 This is the NPL round being performed when `DKM.checkupClusterSigners()` is called:
 
 ```js
-const cluster_signers_1 = await this.NPLResponse({
-    content: JSON.stringify({
-		roundName: `signer-status-checkup-${this._account_credential.classicAddress}`,
-		data: this._signer_credential.classicAddress
-	}),
-	desired_count: this.ctx.unl.count(),
-	ctx: this.ctx,
-		timeout: this._config.NPL_round_timeout["signer_status_checkup"],
-		strict: false
-	});
+const hpClusterSignerAddresses = await this.npl.performNplRound({
+	roundName: `signer-status-checkup-${this.dAppAccountClassicAddress}`,
+	content: this.hpSignerAddress,
+	desiredCount: this.ctx.unl.count(),
+	timeout: this.dkmConfig.NPL_round_timeout["signer_status_checkup"]
+});
 ```
 
 ### Transaction: DKM.packageTxAPI(), DKM.autofillTx(), DKM.signTx(), DKM.submitTx()
 
-`DKM` provides dApps the ability to construct, autofill and submit *multi-signature* transactions over to the XRP Ledger.
+`DKM` provides HP dApps the ability to construct, autofill and submit *multi-signature* transactions over to the XRP Ledger.
 
 ```js
 // Construct an unfilled transaction with a MEMO field attached
-const tx = await DKMObject.packageTxAPI({
+const tx = await DKM.packageTxAPI({
     destination: "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
     amount: ctx.lclSeqNo.toString(),
     MEMO: {
-        memo_data: `This transaction was signed using DKM on a HotPocket cluster in Ledger ${ctx.lclSeqNo} !`,
-        memo_type: "LEDGER",
-        memo_format: "text/csv"
+        data: `This transaction was signed using DKM on a HotPocket cluster in Ledger ${ctx.lclSeqNo} !`,
+        type: "LEDGER",
+        format: "text/csv"
     }
 });
 
 // Autofill, multi-sign and relay transaction to rippled node
-const tx_filled = await DKMObject.autofillTx({tx: tx, multisig: true});
-const tx_sig = await DKMObject.signTx({tx: tx_filled});
-const tx_result = await DKMObject.submitTx({tx: tx_sig});
+const tx_filled = await DKM.autofillTx({tx: tx, multisig: true});
+const tx_sig = await DKM.signTx({tx: tx_filled});
+const tx_result = await DKM.submitTx({tx: tx_sig});
 ```
 
-`DKM.packageTxAPI` essentially acts as a simple packager for transactions that are meant to relay pieces of information on an XRPL transaction to a reciepient.
+`DKM.packageTxAPI` essentially acts as a simple wrapper for transactions that are meant to relay pieces of information on an XRPL transaction to a recipient.
 
-`DKM.autofillTx` automatically fills unfilled fields on the transaction, requesting neccesary fills from the XRPL node. Nothing special compared to `xrpl-js`'s autofill function.
+`DKM.autofillTx` automatically fills unfilled common fields on the transaction, requesting necessary fills from the XRPL node. Nothing special compared to `xrpl-js`'s autofill function.
 
-In a decentralized setting where the signer list is up, `DKM.signTx` performs a NPL round to distribute and collect valid signatures for a multi-sig transaction. Here's a small snippet of the code, which is the NPL round:
+In a decentralized setting, where the dApp's XRPL signerlist exist, `DKM.signTx` performs an NPL round to distribute and collect valid signatures for a multi-sig transaction. Here's a snippet of the code, which is the NPL round:
 
 ```js
-const signatures = await this.NPLResponse({
-    content: JSON.stringify({
-		roundName: `signature-collection-${roundname}`,
-		data: JSON.stringify({
-			account: signer_wallet.classicAddress,
-			tx: signed_tx_blob
-		})
+const signatures = await this.npl.performNplRound({
+	roundName: `signature-collection-${roundName}`,
+	content: JSON.stringify({
+		account: signerWallet.classicAddress,
+		tx: signedTxBlob
 	}),
-	desired_count: this._signerlist_quorum,
-	timeout: this._config.NPL_round_timeout["signing"],
-	strict: true
-	// This should be true since if we have enough signers to pass quorum, the tx is valid.
-	// Any more signatures would be a waste of tx fee and time spent on collecting signatures. 
-	// If you'd like to object this, post an issue on the package's github repository and let's talk. 
+	desiredCount: this.signerlistQuorum,
+	timeout: this.dkmConfig.NPL_round_timeout["signing"]
 });
 ```
 
 And finally, you'd have to disconnect from the XRPL node to start a new round/ledger on your HotPocket cluster!
+
+```js
+await client.disconnect();
+```

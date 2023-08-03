@@ -2,35 +2,36 @@
 
 For DKM to function, dApps needs to set a folder under `dist` dedicated to store DKM's files.
 
-To set it up, ensure that the directory `DKM/dApp` exist under the `dist` directory during development and add 2 files under `DKM/dApp`, which are:
+To set it up, ensure that the `/DKM/dApp` directory exist under `dist` during development and add 2 files under `/DKM/dApp`, which are:
 1. `config.json`
-2. `XRPL_account.json`
+2. `dApp-xrplAccount.json`
 
-`config.json` is a configuration file for DKM & `XRPL_account.json` will contain the dApp's XRPL account, `XRPL_account.json` is intended to stay empty as it will be set up in Ledger #1.
+`config.json` is a configuration file for DKM & `dApp-xrplAccount.json` will contain the dApp's XRPL account credentials, `dApp-xrplAccount.json` is intended to stay empty as it will be set up in HP Ledger #1.
 
 This is an example of `config.json`:
 
 ```json
 {
-    "node": {
-        "testnet": [
-            "wss://s.altnet.rippletest.net:51233",
-            "wss://testnet.xrpl-labs.com/"
-        ],
-        "devnet": [
-            "wss://s.devnet.rippletest.net:51233/"
-        ]
+    "network": {
+        "hooks": {
+            "wss": "wss://hooks-testnet-v3.xrpl-labs.com",
+            "network_id": 21338
+        },
+        "testnet": {
+            "wss": "wss://testnet.xrpl-labs.com/",
+            "network_id": 1
+        }
     },
     "account": {
-        "seed": "sanQKMFhTLwmxxkCWCGpffxDomRwU",
+        "seed": "saEjV7KRCMHPhxERG6ho2NbrJ3p9U",
         "signerlist_quorum": 0.8
     },
     "signer": {
         "scheme": [
             "ed25519",
-            "secp256k1"
+            "ecdsa-secp256k1"
         ],
-       "default_fee_per_signer": 15
+        "default_fee_per_signer": 15,
     },
     "NPL_round_timeout": {
         "signerlist_setup": 6000,
@@ -43,19 +44,18 @@ This is an example of `config.json`:
 # Attributes
 
 There are 4 core config parameters, which are:
-- node
+- network
 - account
 - signer
 - NPL_round_timeout
 
+## network
 
-## node
+> This section contains the list of all XRPL networks that the HP dApp may connect & interact with.
 
-> This section contains the list of XRPL-powered networks that the HP dApp may connect with.
-
-|     Field      |                  Description                  |
-| :------------: | :-------------------------------------------: |
-| {network-name} | Array of network endpoints or XRPL node URL's |
+|     Field      |                Description               |
+| :------------: | :--------------------------------------: |
+| {network-name} | Contains a node's URL and the network ID |
 
 ## account
 
