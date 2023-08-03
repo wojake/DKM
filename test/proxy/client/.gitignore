@@ -1,0 +1,13 @@
+# Ignore vim swap files.
+*.swp
+
+node_modules
+
+user.key
+
+# Ignore python compiled files.
+*.pyc
+
+# Ignore Macintosh Desktop Services Store files.
+.DS_Store
+
