@@ -7,8 +7,6 @@ A NodeJS library for HotPocket clusters to manage their XRPL account in a decent
 npm install decentralized-key-management
 ```
 
-Current version: `v0.2.0`
-
 # Understanding DKM
 
 ## How it works

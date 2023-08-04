@@ -1,8 +1,8 @@
 {
-    "name": "mycontract",
+    "name": "contract",
     "version": "1.0.0",
     "scripts": {
-        "build": "npx ncc build src/mycontract.js -o dist",
+        "build": "npx ncc build src/contract.js -o dist",
         "start": "npm run build && hpdevkit deploy dist"
     },
     "dependencies": {
