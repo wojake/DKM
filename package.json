@@ -1,6 +1,6 @@
 {
   "name": "decentralized-key-management",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A framework for HotPocket clusters to manage their XRPL account signer keys in order to use the XRP Ledger in a decentralized manner. The `DKM` framework facilitates the management of a dApp's XRPL multi-sig account.",
   "main": "index.js",
   "scripts": {

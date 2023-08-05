@@ -10,7 +10,7 @@ const NPLBroker = require("npl-broker");
 /**
  * The 'Decentralized Key Management' framework for HotPocket applications.
  * @author Wo Jake
- * @version 0.4.0
+ * @version 0.4.1
  * @description A NodeJS framework for HotPocket clusters to manage their Decentralized Application's signer keys in a decentralized manner (XRPL).
  * 
  * See https://github.com/wojake/DKM to learn more and contribute to the codebase, any type of contribution is truly appreciated.
