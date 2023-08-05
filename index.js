@@ -90,6 +90,17 @@ class Manager {
 		return this.transactions;
 	}
 
+	// XRPL details
+	get networkID() {
+		return this.networkID;
+	}
+	get xrplClient() {
+		return this.client;
+	}
+	get xrplPackage() {
+		return this.xrpl;
+	}
+
 	/**
 	 * Internal use to delay code execution.
 	 * 
