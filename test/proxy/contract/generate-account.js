@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable indent */
 const fs = require("fs");
-const xrpl = require("xrpl");
+const xrpl = require("@transia/xrpl");
 const { program } = require("commander");
 
 async function main() {

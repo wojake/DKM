@@ -62,7 +62,7 @@ async function clientApp() {
         
         console.log("Also note that if the destination account is invalid or unfunded, the tx will fail as well.");
 
-        // if you don't know an address to choose, use this address: rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe
+        // if you don't know an address to choose, use this address: rDADDYfnLvVY9FBnS8zFXhwYFHPuU5q2Sk
         const destination = prompt("Destination: ");
         const amount = prompt("Amount: ");
 

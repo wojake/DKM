@@ -6,8 +6,8 @@
         "start": "npm run build && hpdevkit deploy dist"
     },
     "dependencies": {
+        "@transia/xrpl": "^2.7.3-alpha.9",
         "@vercel/ncc": "0.34.0",
-        "hotpocket-nodejs-contract": "0.5.7",
-        "xrpl": "^2.7.0"
+        "hotpocket-nodejs-contract": "0.5.7"
     }
 }

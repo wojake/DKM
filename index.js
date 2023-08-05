@@ -6,12 +6,11 @@ const compare = require("underscore");
 const crypto = require("crypto");
 const VerifySignature = require("verify-xrpl-signature").verifySignature;
 const NPLBroker = require("npl-broker");
-const xrpl = require("xrpl");
 
 /**
  * The 'Decentralized Key Management' framework for HotPocket applications.
  * @author Wo Jake
- * @version 0.3.0
+ * @version 0.4.0
  * @description A NodeJS framework for HotPocket clusters to manage their Decentralized Application's signer keys in a decentralized manner (XRPL).
  * 
  * See https://github.com/wojake/DKM to learn more and contribute to the codebase, any type of contribution is truly appreciated.
@@ -34,8 +33,9 @@ function getNetwork(network) {
 }
 
 class Manager {
-	constructor(ctx, client, networkID) {
+	constructor(ctx, xrpl, client, networkID) {
 		this.ctx = ctx;
+		this.xrpl = xrpl;
 		this.client = client;
 		this.networkID = networkID;
 
@@ -70,7 +70,7 @@ class Manager {
 		return this.dAppAccountSeed;
 	}
 	get dAppXrplAccountSequence() {
-		return this.dAppXrplAccountSeq;
+		return this.dAppAccountSeq;
 	}
 
 	// The HP dApp's signer list data.
@@ -158,10 +158,10 @@ class Manager {
 				var index = Math.abs(Math.floor(Math.random() * scheme.length));
 				scheme = scheme[index];
 			} else {
-				throw new Error("DKM: config.signer.scheme[] is not defined in config.json file");
+				throw new Error(`${this.#generateSignerCredentials.name}: config.signer.scheme[] is not defined in config.json file`);
 			}
 
-			const signerKeypair = xrpl.Wallet.generate(scheme);
+			const signerKeypair = this.xrpl.Wallet.generate(scheme);
 		
 			fs.writeFileSync(keyFile, JSON.stringify({
 				"seed": signerKeypair.seed,
@@ -255,7 +255,7 @@ class Manager {
 		if (typeof tx === "number" || tx === undefined) {
 			throw new Error(`${this.submitTx.name}: No signed transaction blob was provided`);
 		} else {
-			var tt = xrpl.decode(tx).TransactionType;
+			var tt = this.xrpl.decode(tx).TransactionType;
 		}
 
 		try {
@@ -278,7 +278,7 @@ class Manager {
 		if (typeof tx === "number" || tx === undefined) {
 			throw new Error(`${this.submitTxAndWait.name}: No signed transaction blob was provided`);
 		} else {
-			var tt = xrpl.decode(tx).TransactionType;
+			var tt = this.xrpl.decode(tx).TransactionType;
 		}
 
 		try {
@@ -366,10 +366,10 @@ class Manager {
 	 * @returns {Promise<object>} The multi-signed transaction
 	 */
 	async signTx(tx) {
-		const signerWallet = xrpl.Wallet.fromSecret(this.hpSignerSeed);
+		const signerWallet = this.xrpl.Wallet.fromSecret(this.hpSignerSeed);
 
 		// Signers that are apart of the dApp's signer list get to be apart of the multisig transaction, other signer's tx blob are ignored
-		if (this.signers.includes(signerWallet.classicAddress)) {
+		if (this.signers.includes(signerWallet.classicAddress)) {		
 			const signedTxBlob = signerWallet.sign(tx, true).tx_blob;
 
 			this.#Log("INF", `${this.signTx.name}: Multi-signing ${tx.TransactionType} transaction`);
@@ -414,7 +414,7 @@ class Manager {
 			});
 
 			if (validSignatures.length > 0) {
-				return xrpl.multisign(validSignatures);
+				return this.xrpl.multisign(validSignatures);
 			} else {
 				return undefined;
 			}
@@ -439,7 +439,7 @@ class Manager {
 			throw new Error(`${this.setSignerList.name}: proposed signer list has over 32 signers. The max amount of signers on a signer list is 32`);
 		}
 
-		const dAppWallet = xrpl.Wallet.fromSecret(this.dAppAccountSeed);
+		const dAppWallet = this.xrpl.Wallet.fromSecret(this.dAppAccountSeed);
 
 		var signerKeys = [];
 		signers.forEach(signer => {
@@ -541,13 +541,13 @@ class Manager {
 					TransactionResult: submittedTx
 				};
 			} else {
-				if (retries === 2) { 
+				if (retries === 1) { 
 					return {
 						Result: "failed",
 						TransactionResult: submittedTx
 					};
 				} else {
-					retries += 1;
+					retries++;
 				}
 			}
 		}
@@ -560,13 +560,13 @@ class Manager {
 	 * @returns {Promise<object>} The transaction's result
 	 */
 	async #disableMasterKey() {
-		const dAppWallet = xrpl.Wallet.fromSecret(this.dAppAccountSeed);
+		const dAppWallet = this.xrpl.Wallet.fromSecret(this.dAppAccountSeed);
 
 		const DisableMasterKeyTx = await this.autofillTx({
 			tx: {
 				TransactionType: "AccountSet",
 				Account: dAppWallet.classicAddress,
-				SetFlag: xrpl.AccountSetAsfFlags.asfDisableMaster,
+				SetFlag: this.xrpl.AccountSetAsfFlags.asfDisableMaster,
 				Memos: [{
 					Memo:{
 						MemoType: Buffer.from("Evernode", "utf8").toString("hex"),
@@ -599,13 +599,13 @@ class Manager {
 					TransactionResult: submittedTx
 				};
 			} else {
-				if (retries === 2) { 
+				if (retries === 1) { 
 					return {
 						Result: "failed",
 						TransactionResult: submittedTx
 					};
 				} else {
-					retries += 1;
+					retries++;
 				}
 			}
 		}
@@ -664,7 +664,7 @@ class Manager {
 					});
 				}
 
-				if (hpSignersRecord.length !== this.ctx.unl.count()) this.#Log("INF", `${this.#setupDAppAccount.name}: Failed to collect enough XRPL signer keys to construct XRPL signerlist.`);
+				if (hpSignersRecord.length !== this.ctx.unl.count()) this.#Log("INF", `${this.#setupDAppAccount.name}: Failed to collect enough XRPL signer keys to construct XRPL signerlist`);
 			}
 
 			var signerlist = [];
@@ -682,16 +682,17 @@ class Manager {
 				var signerListSetTx = await this.setSignerList({
 					signers: signerlist
 				});
-	
+
 				if (signerListSetTx.Result === "success") {
 					retries = 2,
 					SignerListSet = "success";
 				} else {
 					retries += 1;
-				}
+				}	
+
 				if (signerListSetTx.hasOwnProperty("TransactionResult")) var signerlistsetTR = signerListSetTx.TransactionResult;
 			} else {
-				retries += 1;
+				retries++;
 			}
 		}
 		
@@ -706,7 +707,7 @@ class Manager {
 				retries = 4;
 				MasterKeyDisabled = "success";
 			} else {
-				retries += 1;
+				retries++;
 			}
 		}
 
@@ -737,7 +738,7 @@ class Manager {
 		const request = await this.#requestRippled({
 			command: "account_tx",
 			account: this.dAppAccountClassicAddress,
-			ledger_index_min: this.dAppXrplAccountSeq + 1,
+			ledger_index_min: this.dAppAccountSeq + 1,
 			ledger_index_max: -1,
 			binary: false,
 			forward: true
@@ -745,11 +746,11 @@ class Manager {
 		
 		if (request.hasOwnProperty("result") ) {
 			if (request.result.transactions.length > 0) {
-				this.dAppXrplAccountSeq = request.result.transactions[request.result.transactions.length - 1].tx.ledger_index;
+				this.dAppAccountSeq = request.result.transactions[request.result.transactions.length - 1].tx.ledger_index;
 				const dAppXrplAccountCreds = {
 					"classicAddress": this.dAppAccountClassicAddress,
 					"seed": this.dAppAccountSeed,
-					"sequence": this.dAppXrplAccountSeq
+					"sequence": this.dAppAccountSeq
 				};
 				fs.writeFileSync(__dirname+"/DKM/dApp/dApp-xrplAccount.json", JSON.stringify(dAppXrplAccountCreds));
 
@@ -829,7 +830,7 @@ class Manager {
 		}
 
 		signers.forEach(key => {
-			if (!xrpl.isValidAddress(key.xrpl_signing_key)) {
+			if (!this.xrpl.isValidAddress(key.xrpl_signing_key)) {
 				throw new Error(`${this.addSignerKey.name}: "${key}" is not a valid XRPL address, cannot append to dApp's signerlist`);
 			}
 		});
@@ -906,7 +907,7 @@ class Manager {
 			this.dAppAccountSeed = dAppXrplAccount.seed,
 			this.dAppAccountSeq = dAppXrplAccount.sequence;
 		} else {
-			const dAppWallet = xrpl.Wallet.fromSeed(this.dkmConfig.account.seed);
+			const dAppWallet = this.xrpl.Wallet.fromSecret(this.dkmConfig.account.seed);
 			this.dAppAccountSeed = dAppWallet.seed,
 			this.dAppAccountClassicAddress = dAppWallet.classicAddress;
 		}
@@ -918,10 +919,14 @@ class Manager {
 				var setupResult = await this.#setupDAppAccount();
 			} catch (err) {
 				var setupResult = {
-					"Result": "failed"
+					result: "failed"
 				};
-				throw new Error(err);
+				throw new Error(`${this.init.name}: ${err}`);
 			}
+		} else {
+			var setupResult = {
+				result: "successful",
+			};
 		}
 		await this.getTransactions();
 		return setupResult;

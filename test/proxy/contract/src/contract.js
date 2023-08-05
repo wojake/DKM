@@ -3,7 +3,7 @@
 /* eslint-disable indent */
 const HotPocket = require("hotpocket-nodejs-contract");
 const DecentralizedKeyManagement = require("decentralized-key-management");
-const xrpl = require("xrpl");
+const xrpl = require("@transia/xrpl");
 
 const mycontract = async (ctx) => {
     const ClientURL = DecentralizedKeyManagement.getNetwork("hooks");
@@ -18,11 +18,10 @@ const mycontract = async (ctx) => {
     // --- TEST 1: INIT DKM ---
     console.log("\n - TEST 1: Initializing DKM. UTILIZES: constructor(), init()");
 
-    const DKM = new DecentralizedKeyManagement.Manager(ctx, client, networkID);
+    const DKM = new DecentralizedKeyManagement.Manager(ctx, xrpl, client, networkID);
 
     try{
         var initResult = await DKM.init();
-        console.log(initResult);
     } catch (err) {
         console.log(err);
     }
@@ -62,23 +61,23 @@ const mycontract = async (ctx) => {
                     const request = await ctx.users.read(input);
                     const userRequest = JSON.parse(request);
 
-                    if (userRequest.TransactionType === "Payment" && userRequest.Amount >= 1 && userRequest.Amount < 1000000) {
+                    if (userRequest.TransactionType === "Payment" && xrpl.isValidAddress(userRequest.Destination) && userRequest.Amount <= 1) {
                         try {
-                                var tx = DKM.packageTxAPI({
-                                    destination: userRequest.Destination,
-                                    amount: userRequest.Amount,
-                                    memo: {
-                                        data: `This transaction was signed using DKM on a HotPocket cluster in Ledger ${ctx.lclSeqNo} !`,
-                                        type: "LEDGER",
-                                        format: "text/csv"
-                                    }
-                                });
+                            var tx = DKM.packageTxAPI({
+                                destination: userRequest.Destination,
+                                amount: xrpl.xrpToDrops(userRequest.Amount),
+                                memo: {
+                                    data: `This transaction was signed using DKM on a HotPocket cluster in Ledger ${ctx.lclSeqNo} !`,
+                                    type: "LEDGER",
+                                    format: "text/csv"
+                                }
+                            });
 
-                                const tx_filled = await DKM.autofillTx({tx: tx, multisig: true});
-                                const tx_sig = await DKM.signTx({tx: tx_filled});
-                                const tx_result = await DKM.submitTx({tx: tx_sig});
+                            const tx_filled = await DKM.autofillTx({tx: tx, multisig: true});
+                            const tx_sig = await DKM.signTx(tx_filled);
+                            const tx_result = await DKM.submitTx(tx_sig);
                         } catch (err) {
-                            console.log(`ERROR: ${err}`);
+                            throw new Error(`ERROR: ${err}`);
                         }
                     }
                 }

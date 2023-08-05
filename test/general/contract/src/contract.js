@@ -3,7 +3,7 @@
 /* eslint-disable indent */
 const HotPocket = require("hotpocket-nodejs-contract");
 const DecentralizedKeyManagement = require("decentralized-key-management");
-const xrpl = require("xrpl");
+const xrpl = require("@transia/xrpl");
 
 const mycontract = async (ctx) => {
     const ClientURL = DecentralizedKeyManagement.getNetwork("hooks");
@@ -18,7 +18,7 @@ const mycontract = async (ctx) => {
     // --- TEST 1: INIT DKM ---
     console.log("\n - TEST 1: Initializing DKM. UTILIZES: constructor(), init()");
 
-    const DKM = new DecentralizedKeyManagement.Manager(ctx, client, networkID);
+    const DKM = new DecentralizedKeyManagement.Manager(ctx, xrpl, client, networkID);
 
     try{
         var initResult = await DKM.init();
