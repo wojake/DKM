@@ -2,15 +2,14 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-redeclare */
 const fs = require("fs");
-const compare = require("underscore");
 const crypto = require("crypto");
+const compare = require("underscore");
 const VerifySignature = require("verify-xrpl-signature").verifySignature;
-const NPLBroker = require("npl-broker");
 
 /**
  * The 'Decentralized Key Management' framework for HotPocket applications.
  * @author Wo Jake
- * @version 0.4.2
+ * @version 0.4.3
  * @description A NodeJS framework for HotPocket clusters to manage their Decentralized Application's signer keys in a decentralized manner (XRPL).
  * 
  * See https://github.com/wojake/DKM to learn more and contribute to the codebase, any type of contribution is truly appreciated.
@@ -33,8 +32,9 @@ function getNetwork(network) {
 }
 
 class Manager {
-	constructor(ctx, xrpl, client, networkID) {
+	constructor(ctx, npl, xrpl, client, networkID) {
 		this.ctx = ctx;
+		this.npl = npl; // NPLBroker.init(ctx);
 		this.xrpl = xrpl;
 		this.client = client;
 		this.networkID = networkID;
@@ -44,8 +44,6 @@ class Manager {
 		// false: 0 signerlist on account root 
 		// true: 1 signerlist on account root
 		this.signerlistCount = 0;
-		
-		this.npl = NPLBroker.init(ctx);
 	}
 
 	get config() {
