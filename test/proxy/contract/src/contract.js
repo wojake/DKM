@@ -3,25 +3,15 @@
 /* eslint-disable indent */
 const HotPocket = require("hotpocket-nodejs-contract");
 const DecentralizedKeyManagement = require("decentralized-key-management");
-const xrpl = require("@transia/xrpl");
 const NPLBroker = require("npl-broker");
 
 const mycontract = async (ctx) => {
     const npl = NPLBroker.init(ctx);
 
-    const ClientURL = DecentralizedKeyManagement.getNetwork("hooks");
-
-    var client = new xrpl.Client(ClientURL.wss);
-    var networkID = ClientURL.network_id;
-
-    await client.connect();
-
-    console.log(`Connected XRPL node: ${ClientURL.wss}`);
-
     // --- TEST 1: INIT DKM ---
     console.log("\n - TEST 1: Initializing DKM. UTILIZES: constructor(), init()");
 
-    const DKM = new DecentralizedKeyManagement.Manager(ctx, npl, xrpl, client, networkID);
+    const DKM = new DecentralizedKeyManagement.Manager(ctx, npl, "hooks");
 
     try{
         var initResult = await DKM.init();
@@ -87,8 +77,8 @@ const mycontract = async (ctx) => {
             }
         }
     }
-
-    await client.disconnect();
+    
+    await DKM.close();
 };
 
 const hpc = new HotPocket.Contract();

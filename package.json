@@ -1,10 +1,10 @@
 {
   "name": "decentralized-key-management",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "A framework for HotPocket clusters to manage their XRPL account signer keys in order to use the XRP Ledger in a decentralized manner. The `DKM` framework facilitates the management of a dApp's XRPL multi-sig account.",
   "main": "index.js",
   "scripts": {
-    "test": "sudo hpdevkit clean && cd test/general/contract/src && node ../generate-account.js -net hooks -node wss://hooks-testnet-v3.xrpl-labs.com -id 21338 && sudo npm link decentralized-key-management && sudo HP_CLUSTER_SIZE=6 npm start",
+    "test": "sudo hpdevkit clean && cd test/general/contract/src && node ../generate-account.js -net hooks -node wss://hooks-testnet-v3.xrpl-labs.com -id 21338 && sudo npm link decentralized-key-management && sudo HP_CLUSTER_SIZE=4 npm start",
     "patch": "sudo version patch",
     "minor": "sudo version minor",
     "major": "sudo version major"
@@ -26,8 +26,8 @@
   },
   "homepage": "https://github.com/wojake/DKM",
   "dependencies": {
-    "underscore": "^1.13.6",
-    "verify-xrpl-signature": "^0.4.1"
+    "@transia/xrpl": "^2.7.3-alpha.9",
+    "underscore": "^1.13.6"
   },
   "devDependencies": {
     "commander": "^11.0.0",

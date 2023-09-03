@@ -45,12 +45,12 @@ async function main() {
         "_comment": "https://xrpl.org/xrp-testnet-faucet.html",
         "network": {
             [networkName]: {
-                "wss": options.node,
-                "network_id": parseInt(options.networkId)
+                "url": options.node,
+                "id": parseInt(options.networkId)
             },
             "testnet": {
-                "wss": "wss://testnet.xrpl-labs.com/",
-                "network_id": 1
+                "url": "wss://testnet.xrpl-labs.com/",
+                "id": 1
             }
         },
         "account": {

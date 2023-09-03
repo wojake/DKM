@@ -1,0 +1,14 @@
+{
+    "name": "nft",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "npx ncc build src/contract.js -o dist",
+        "build:prod": "npx ncc build src/contract.js --minify -o dist",
+        "start": "npm run build && hpdevkit deploy dist"
+    },
+    "dependencies": {
+        "@vercel/ncc": "0.34.0",
+        "hotpocket-nodejs-contract": "0.5.6",
+        "npl-broker": "^1.2.1"
+    }
+}

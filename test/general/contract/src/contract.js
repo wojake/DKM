@@ -3,39 +3,30 @@
 /* eslint-disable indent */
 const HotPocket = require("hotpocket-nodejs-contract");
 const DecentralizedKeyManagement = require("decentralized-key-management");
-const xrpl = require("@transia/xrpl");
 const NPLBroker = require("npl-broker");
 
 const mycontract = async (ctx) => {
     const npl = NPLBroker.init(ctx);
 
-    const clientURL = DecentralizedKeyManagement.getNetwork("hooks");
-    var client = new xrpl.Client(clientURL.wss);
-    var networkID = clientURL.network_id;
-
-    await client.connect();
-
-    console.log(`Connected XRPL node: ${clientURL.wss}`);
-
     // --- TEST 1: INIT DKM ---
     console.log("\n - TEST 1: Initializing DKM. UTILIZES: constructor(), init()");
 
-    const DKM = new DecentralizedKeyManagement.Manager(ctx, npl, xrpl, client, networkID);
+    const DKM = new DecentralizedKeyManagement.Manager(ctx, npl, "hooks");
 
     try{
         var initResult = await DKM.init();
     } catch (err) {
         console.log(err);
     }
-   
+
     // --- TEST 2: PAYMENT TRANSACTION ---
     console.log("\n - TEST 2: Sending Payment Transaction. UTILIZES: packageTxAPI(), autofillTx(), signTx(), submitTx()");
 
-    const tx = await DKM.packageTxAPI({
+    const tx = DKM.packageTxAPI({
         destination: "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
         amount: ctx.lclSeqNo.toString(),
         memo: {
-            data: "You seem smart to lurk here, here's some general alpha: Hooks & Evernode will change the entire game. Do R&D and network well.",
+            data: "CHANGENOWORLOSEBRO",
             type: "21337",
             format: "text/csv"
         }
@@ -61,7 +52,7 @@ const mycontract = async (ctx) => {
     console.log(`     Offline peers: ${cluster_state.OfflineSigners.length}`);
     console.log(` NPL Time duration: ${cluster_state.TimeTaken}ms / ${cluster_state.Timeout}ms`);
 
-    await client.disconnect();
+    await DKM.close();
 };
 
 const hpc = new HotPocket.Contract();

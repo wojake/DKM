@@ -14,12 +14,12 @@ This is an example of `config.json`:
 {
     "network": {
         "hooks": {
-            "wss": "wss://hooks-testnet-v3.xrpl-labs.com",
-            "network_id": 21338
+            "url": "wss://hooks-testnet-v3.xrpl-labs.com",
+            "id": 21338
         },
         "testnet": {
-            "wss": "wss://testnet.xrpl-labs.com/",
-            "network_id": 1
+            "url": "wss://testnet.xrpl-labs.com/",
+            "id": 1
         }
     },
     "account": {
